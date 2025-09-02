@@ -8,7 +8,7 @@ provider:
   region: us-east-1
   memorySize: 128
   timeout: 30
-  deploymentBucket: ibs-deployment-artifacts
+ # deploymentBucket: ibs-deployment-artifacts
   
   # Company wale deprecated properties - testing ke liye remove karenge
   # apiKeys:
