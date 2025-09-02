@@ -1,0 +1,54 @@
+name: Auto Merge Branch2 - Sequential
+
+on:
+  push:
+    branches:
+      - dev
+
+jobs:
+  auto_back_merge_dev_f1:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/dev'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Merge dev -> f1
+        continue-on-error: true
+        uses: devmasx/merge-branch@master
+        with:
+          type: now
+          from_branch: dev
+          target_branch: f1
+          message: Merge dev into f1
+          github_token: ${{ secrets.GH_AUTO_MERGER }}
+
+  auto_back_merge_dev_f2:
+    runs-on: ubuntu-latest
+    needs: auto_back_merge_dev_f1
+    if: github.ref == 'refs/heads/dev'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Merge dev -> f2
+        continue-on-error: true
+        uses: devmasx/merge-branch@master
+        with:
+          type: now
+          from_branch: dev
+          target_branch: f2
+          message: Merge dev into f2
+          github_token: ${{ secrets.GH_AUTO_MERGER }}
+
+  auto_back_merge_dev_f3:
+    runs-on: ubuntu-latest
+    needs: auto_back_merge_dev_f2
+    if: github.ref == 'refs/heads/dev'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Merge dev -> f3
+        continue-on-error: true
+        uses: devmasx/merge-branch@master
+        with:
+          type: now
+          from_branch: dev
+          target_branch: f3
+          message: Merge dev into f3
+          github_token: ${{ secrets.GH_AUTO_MERGER }}
