@@ -56,7 +56,7 @@ jobs:
           fi
           
       - name: Install dependencies
-        run: npm install
+        run: npm install --legacy-peer-deps
         
       - name: Install Serverless and Plugins
         run: |
