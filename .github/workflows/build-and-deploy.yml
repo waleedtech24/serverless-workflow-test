@@ -1,4 +1,4 @@
-name: Serverless Build and Deploy - REAL
+name: Serverless Build and Deploy - Extended
 
 on:
   push:
@@ -6,6 +6,10 @@ on:
       - 'f1'
       - 'f2' 
       - 'f3'
+      - 'f4'
+      - 'f5'
+      - 'f6'
+      - 'f7'
       - 'dev'
 
 jobs:
@@ -22,7 +26,7 @@ jobs:
       - name: Setup node
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '16'  # Company node version
           
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -41,13 +45,23 @@ jobs:
             echo "BRANCH_NAME=feature2" >> $GITHUB_ENV
           elif [[ "${{github.ref}}" == "refs/heads/f3" ]]; then
             echo "BRANCH_NAME=feature3" >> $GITHUB_ENV
+          elif [[ "${{github.ref}}" == "refs/heads/f4" ]]; then
+            echo "BRANCH_NAME=feature4" >> $GITHUB_ENV
+          elif [[ "${{github.ref}}" == "refs/heads/f5" ]]; then
+            echo "BRANCH_NAME=feature5" >> $GITHUB_ENV
+          elif [[ "${{github.ref}}" == "refs/heads/f6" ]]; then
+            echo "BRANCH_NAME=feature6" >> $GITHUB_ENV
+          elif [[ "${{github.ref}}" == "refs/heads/f7" ]]; then
+            echo "BRANCH_NAME=feature7" >> $GITHUB_ENV
           fi
           
       - name: Install dependencies
         run: npm install
         
-      - name: Install Serverless
-        run: npm install -g serverless@3
+      - name: Install Serverless and Plugins
+        run: |
+          npm install -g serverless@3
+          npm install serverless-prune-plugin --save-dev
         
       - name: Copy Serverless Config
         run: |
@@ -69,11 +83,19 @@ jobs:
             cp .secrets.feature2.yml .secrets.yml
           elif [[ "${{ env.BRANCH_NAME }}" == "feature3" ]]; then
             cp .secrets.feature3.yml .secrets.yml
+          elif [[ "${{ env.BRANCH_NAME }}" == "feature4" ]]; then
+            cp .secrets.feature4.yml .secrets.yml
+          elif [[ "${{ env.BRANCH_NAME }}" == "feature5" ]]; then
+            cp .secrets.feature5.yml .secrets.yml
+          elif [[ "${{ env.BRANCH_NAME }}" == "feature6" ]]; then
+            cp .secrets.feature6.yml .secrets.yml
+          elif [[ "${{ env.BRANCH_NAME }}" == "feature7" ]]; then
+            cp .secrets.feature7.yml .secrets.yml
           fi
           
-      - name: Sleep for part2 and part3
+      - name: Sleep for part2 and part3 (Company behavior simulation)
         if: matrix.serverless == 'part2' || matrix.serverless == 'part3'
-        run: sleep 30
+        run: sleep 180  # Company actual timing
         
       - name: Echo deployment info
         run: |
@@ -85,8 +107,12 @@ jobs:
           echo "Starting real AWS deployment..."
           serverless deploy --stage ${{ env.BRANCH_NAME }} --verbose
           
+      - name: Serverless Prune (Company behavior)
+        run: |
+          echo "Running serverless prune..."
+          serverless prune -n 3 --stage ${{ env.BRANCH_NAME }}
+          
       - name: Deployment Success
         run: |
           echo "Successfully deployed serverless ${{ matrix.serverless }} to stage ${{ env.BRANCH_NAME }}"
-          echo "Checking CloudFormation stacks..."
           aws cloudformation list-stacks --stack-status-filter CREATE_COMPLETE UPDATE_COMPLETE --region us-east-1
