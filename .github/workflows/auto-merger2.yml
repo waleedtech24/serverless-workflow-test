@@ -1,4 +1,4 @@
-name: Auto Merge Branch2 - Sequential
+name: Auto Merge Branch2 - Sequential Extended
 
 on:
   push:
@@ -51,4 +51,68 @@ jobs:
           from_branch: dev
           target_branch: f3
           message: Merge dev into f3
+          github_token: ${{ secrets.GH_AUTO_MERGER }}
+
+  auto_back_merge_dev_f4:
+    runs-on: ubuntu-latest
+    needs: auto_back_merge_dev_f3
+    if: github.ref == 'refs/heads/dev'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Merge dev -> f4
+        continue-on-error: true
+        uses: devmasx/merge-branch@master
+        with:
+          type: now
+          from_branch: dev
+          target_branch: f4
+          message: Merge dev into f4
+          github_token: ${{ secrets.GH_AUTO_MERGER }}
+
+  auto_back_merge_dev_f5:
+    runs-on: ubuntu-latest
+    needs: auto_back_merge_dev_f4
+    if: github.ref == 'refs/heads/dev'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Merge dev -> f5
+        continue-on-error: true
+        uses: devmasx/merge-branch@master
+        with:
+          type: now
+          from_branch: dev
+          target_branch: f5
+          message: Merge dev into f5
+          github_token: ${{ secrets.GH_AUTO_MERGER }}
+
+  auto_back_merge_dev_f6:
+    runs-on: ubuntu-latest
+    needs: auto_back_merge_dev_f5
+    if: github.ref == 'refs/heads/dev'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Merge dev -> f6
+        continue-on-error: true
+        uses: devmasx/merge-branch@master
+        with:
+          type: now
+          from_branch: dev
+          target_branch: f6
+          message: Merge dev into f6
+          github_token: ${{ secrets.GH_AUTO_MERGER }}
+
+  auto_back_merge_dev_f7:
+    runs-on: ubuntu-latest
+    needs: auto_back_merge_dev_f6
+    if: github.ref == 'refs/heads/dev'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Merge dev -> f7
+        continue-on-error: true
+        uses: devmasx/merge-branch@master
+        with:
+          type: now
+          from_branch: dev
+          target_branch: f7
+          message: Merge dev into f7
           github_token: ${{ secrets.GH_AUTO_MERGER }}
