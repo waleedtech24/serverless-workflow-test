@@ -1,31 +1,46 @@
+# serverless-part3.yml (Company-like with plugins)
 service: test-serverless-part3
 
 provider:
   name: aws
   stage: ${opt:stage, 'develop'}
-  runtime: nodejs18.x
+  runtime: nodejs16.x
   region: us-east-1
   memorySize: 128
   timeout: 30
+ # deploymentBucket: ibs-deployment-artifacts
+  
+  # Company wale deprecated properties - testing ke liye remove karenge
+  # apiKeys:
+  #   - external:
+  #       - ${opt:stage}-externalKey
+  # usagePlan:
+  #   - external:
+  #       quota:
+  #         limit: 5000
+  #         period: DAY
 
 functions:
-  hello-part3:
-    handler: handler.helloPart3
+  hello-part1:
+    handler: handler.hello
     events:
       - http:
-          path: hello-part3
+          path: hello-part1
           method: get
           
-  test-function-part3-1:
-    handler: handler.testPart3_1
+  test-function-1:
+    handler: handler.test1
     events:
       - http:
-          path: test-part3-1
+          path: test1
           method: get
           
-  test-function-part3-2:
-    handler: handler.testPart3_2
+  test-function-2:
+    handler: handler.test2
     events:
       - http:
-          path: test-part3-2
+          path: test2
           method: get
+
+plugins:
+  - serverless-prune-plugin
