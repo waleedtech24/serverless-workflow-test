@@ -26,7 +26,7 @@ jobs:
       - name: Setup node
         uses: actions/setup-node@v4
         with:
-          node-version: '16'  # Company node version
+          node-version: '18'  # Updated for AWS SDK compatibility
           
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -56,12 +56,12 @@ jobs:
           fi
           
       - name: Install dependencies
-        run: npm install --legacy-peer-deps
+        run: npm install
         
-      - name: Install Serverless and Plugins
+      - name: Install Serverless and Plugins  
         run: |
           npm install -g serverless@3
-          npm install serverless-prune-plugin --save-dev
+          npm install -g serverless-prune-plugin@2.0.0 --force
         
       - name: Copy Serverless Config
         run: |
