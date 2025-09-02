@@ -8,17 +8,7 @@ provider:
   region: us-east-1
   memorySize: 128
   timeout: 30
- # deploymentBucket: ibs-deployment-artifacts
-  
-  # Company wale deprecated properties - testing ke liye remove karenge
-  # apiKeys:
-  #   - external:
-  #       - ${opt:stage}-externalKey
-  # usagePlan:
-  #   - external:
-  #       quota:
-  #         limit: 5000
-  #         period: DAY
+
 
 functions:
   hello-part1:
