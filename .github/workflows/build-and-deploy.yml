@@ -1,4 +1,4 @@
-name: Serverless Build and Deploy - Test
+name: Serverless Build and Deploy - REAL
 
 on:
   push:
@@ -73,22 +73,20 @@ jobs:
           
       - name: Sleep for part2 and part3
         if: matrix.serverless == 'part2' || matrix.serverless == 'part3'
-        run: sleep 30  # Testing ke liye kam time rakha hai
+        run: sleep 30
         
       - name: Echo deployment info
         run: |
           echo "Deploying branch: ${{ env.BRANCH_NAME }}"
           echo "Serverless part: ${{ matrix.serverless }}"
           
-      - name: Serverless Deploy (Dry Run)
+      - name: Serverless Deploy
         run: |
-          echo "Would deploy serverless ${{ matrix.serverless }} to stage ${{ env.BRANCH_NAME }}"
-          echo "CloudFormation stack: test-${{ env.BRANCH_NAME }}-${{ matrix.serverless }}"
-          # Actual deploy command would be:
-          # serverless deploy --stage ${{ env.BRANCH_NAME }}
+          echo "Starting real AWS deployment..."
+          serverless deploy --stage ${{ env.BRANCH_NAME }} --verbose
           
-      - name: Simulate CloudFormation
+      - name: Deployment Success
         run: |
-          echo "Simulating CloudFormation deployment..."
-          sleep 10  # Deployment simulation
-          echo "Stack test-${{ env.BRANCH_NAME }}-${{ matrix.serverless }} deployed successfully"
+          echo "Successfully deployed serverless ${{ matrix.serverless }} to stage ${{ env.BRANCH_NAME }}"
+          echo "Checking CloudFormation stacks..."
+          aws cloudformation list-stacks --stack-status-filter CREATE_COMPLETE UPDATE_COMPLETE --region us-east-1

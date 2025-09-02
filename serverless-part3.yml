@@ -1,0 +1,31 @@
+service: test-serverless-part3
+
+provider:
+  name: aws
+  stage: ${opt:stage, 'develop'}
+  runtime: nodejs18.x
+  region: us-east-1
+  memorySize: 128
+  timeout: 30
+
+functions:
+  hello-part3:
+    handler: handler.helloPart3
+    events:
+      - http:
+          path: hello-part3
+          method: get
+          
+  test-function-part3-1:
+    handler: handler.testPart3_1
+    events:
+      - http:
+          path: test-part3-1
+          method: get
+          
+  test-function-part3-2:
+    handler: handler.testPart3_2
+    events:
+      - http:
+          path: test-part3-2
+          method: get
