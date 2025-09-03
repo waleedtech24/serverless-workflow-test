@@ -5,6 +5,10 @@ on:
     branches:
       - dev
 
+concurrency:
+  group: merge-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   sequential_merges:
     name: Merge to ${{ matrix.branch }}
@@ -26,3 +30,8 @@ jobs:
           target_branch: ${{ matrix.branch }}
           message: Merge dev into ${{ matrix.branch }}
           github_token: ${{ secrets.GH_AUTO_MERGER }}
+
+      - name: Wait for deployment
+        run: |
+          echo "Waiting for ${{ matrix.branch }} deployment to complete..."
+          sleep 300
