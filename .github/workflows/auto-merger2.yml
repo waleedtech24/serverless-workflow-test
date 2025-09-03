@@ -120,3 +120,4 @@ jobs:
           target_branch: f7
           message: Merge dev into f7
           github_token: ${{ secrets.GH_AUTO_MERGER }}
+

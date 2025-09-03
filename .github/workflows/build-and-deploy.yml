@@ -1,4 +1,4 @@
-name: Serverless Build and Deploy - Extended
+name: Serverless Build and Deploy - Final
 
 on:
   push:
@@ -12,6 +12,11 @@ on:
       - 'f7'
       - 'dev'
 
+# Repository-level concurrency - Only one deployment at a time
+concurrency:
+  group: sls-deploy-${{ github.repository }}
+  cancel-in-progress: false
+
 jobs:
   build:
     name: Build
@@ -19,6 +24,7 @@ jobs:
     strategy:
       matrix:
         serverless: [part1, part2, part3]
+      max-parallel: 1  # Sequential serverless parts
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -26,7 +32,7 @@ jobs:
       - name: Setup node
         uses: actions/setup-node@v4
         with:
-          node-version: '18'  # Updated for AWS SDK compatibility
+          node-version: '18'
           
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -56,9 +62,9 @@ jobs:
           fi
           
       - name: Install dependencies
-        run: npm install
+        run: npm install --legacy-peer-deps --force
         
-      - name: Install Serverless and Plugins  
+      - name: Install Serverless and Plugins
         run: |
           npm install -g serverless@3
           npm install -g serverless-prune-plugin@2.0.0 --force
@@ -93,9 +99,9 @@ jobs:
             cp .secrets.feature7.yml .secrets.yml
           fi
           
-      - name: Sleep for part2 and part3 (Company behavior simulation)
+      - name: Sleep for part2 and part3 (Company simulation)
         if: matrix.serverless == 'part2' || matrix.serverless == 'part3'
-        run: sleep 180  # Company actual timing
+        run: sleep 180
         
       - name: Echo deployment info
         run: |
@@ -104,7 +110,7 @@ jobs:
           
       - name: Serverless Deploy
         run: |
-          echo "Starting real AWS deployment..."
+          echo "Starting AWS deployment..."
           serverless deploy --stage ${{ env.BRANCH_NAME }} --verbose
           
       - name: Serverless Prune (Company behavior)
