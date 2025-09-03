@@ -55,7 +55,7 @@ jobs:
           fi
 
       - name: Show Stage
-        run: echo "Using stage: $STAGE"
+        run: echo "Using stage - $STAGE"
 
       - name: Copy Serverless Config
         run: |
