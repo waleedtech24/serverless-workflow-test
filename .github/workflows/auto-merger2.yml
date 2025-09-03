@@ -5,10 +5,6 @@ on:
     branches:
       - dev
 
-concurrency:
-  group: merge-${{ github.ref }}
-  cancel-in-progress: false
-
 jobs:
   auto_back_merge_dev_f1:
     runs-on: ubuntu-latest
@@ -120,4 +116,3 @@ jobs:
           target_branch: f7
           message: Merge dev into f7
           github_token: ${{ secrets.GH_AUTO_MERGER }}
-
