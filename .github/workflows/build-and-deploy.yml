@@ -1,67 +1,62 @@
-name: Serverless Build and Deploy - Working
+name: Serverless Build and Deploy
 
 on:
   push:
-    branches:
-      - 'f1'
-      - 'f2' 
-      - 'f3'
-      - 'f4'
-      - 'f5'
-      - 'f6'
-      - 'f7'
-      - 'dev'
+    branches: [f1, f2, f3, f4, f5, f6, f7, dev]
+  workflow_dispatch: {}
+
+concurrency:
+  group: sls-deploy-${{ github.repository }}
+  cancel-in-progress: false
 
 jobs:
-  build:
-    name: Build
+  deploy:
+    name: Deploy ${{ matrix.serverless }}
     runs-on: ubuntu-latest
+    if: contains(github.ref, 'refs/heads/f') || github.ref == 'refs/heads/dev'
+
     strategy:
       matrix:
         serverless: [part1, part2, part3]
       max-parallel: 1
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        
-      - name: Setup node
+
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: '18'
-          
-      - name: Configure AWS credentials
+
+      - name: Install Dependencies
+        run: npm install --legacy-peer-deps --force
+
+      - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
-          
-      - name: Extract branch name
-        run: |
-          if [[ "${{github.ref}}" == "refs/heads/dev" ]]; then
-            echo "BRANCH_NAME=develop" >> $GITHUB_ENV
-          elif [[ "${{github.ref}}" == "refs/heads/f1" ]]; then
-            echo "BRANCH_NAME=feature1" >> $GITHUB_ENV
-          elif [[ "${{github.ref}}" == "refs/heads/f2" ]]; then
-            echo "BRANCH_NAME=feature2" >> $GITHUB_ENV
-          elif [[ "${{github.ref}}" == "refs/heads/f3" ]]; then
-            echo "BRANCH_NAME=feature3" >> $GITHUB_ENV
-          elif [[ "${{github.ref}}" == "refs/heads/f4" ]]; then
-            echo "BRANCH_NAME=feature4" >> $GITHUB_ENV
-          elif [[ "${{github.ref}}" == "refs/heads/f5" ]]; then
-            echo "BRANCH_NAME=feature5" >> $GITHUB_ENV
-          elif [[ "${{github.ref}}" == "refs/heads/f6" ]]; then
-            echo "BRANCH_NAME=feature6" >> $GITHUB_ENV
-          elif [[ "${{github.ref}}" == "refs/heads/f7" ]]; then
-            echo "BRANCH_NAME=feature7" >> $GITHUB_ENV
-          fi
-          
-      - name: Install dependencies
-        run: npm install --legacy-peer-deps --force
-        
+
       - name: Install Serverless
         run: npm install -g serverless@3
-        
+
+      - name: Compute Stage from Branch
+        run: |
+          branch="${GITHUB_REF#refs/heads/}"
+          echo "Branch is: $branch"
+          if [ "$branch" = "dev" ]; then
+            echo "STAGE=develop" >> "$GITHUB_ENV"
+          elif [[ "$branch" =~ ^f[0-9]+$ ]]; then
+            echo "STAGE=feature${branch#f}" >> "$GITHUB_ENV"
+          else
+            echo "STAGE=$branch" >> "$GITHUB_ENV"
+          fi
+
+      - name: Show Stage
+        run: echo "Using stage - $STAGE"
+
       - name: Copy Serverless Config
         run: |
           if [[ "${{ matrix.serverless }}" == "part1" ]]; then
@@ -71,32 +66,37 @@ jobs:
           elif [[ "${{ matrix.serverless }}" == "part3" ]]; then
             cp serverless-part3.yml serverless.yml
           fi
-          
+
       - name: Copy Secrets
         run: |
-          if [[ "${{ env.BRANCH_NAME }}" == "develop" ]]; then
+          if [[ "${{ env.STAGE }}" == "develop" ]]; then
             cp .secrets.develop.yml .secrets.yml
-          elif [[ "${{ env.BRANCH_NAME }}" == "feature1" ]]; then
+          elif [[ "${{ env.STAGE }}" == "feature1" ]]; then
             cp .secrets.feature1.yml .secrets.yml
-          elif [[ "${{ env.BRANCH_NAME }}" == "feature2" ]]; then
+          elif [[ "${{ env.STAGE }}" == "feature2" ]]; then
             cp .secrets.feature2.yml .secrets.yml
-          elif [[ "${{ env.BRANCH_NAME }}" == "feature3" ]]; then
+          elif [[ "${{ env.STAGE }}" == "feature3" ]]; then
             cp .secrets.feature3.yml .secrets.yml
-          elif [[ "${{ env.BRANCH_NAME }}" == "feature4" ]]; then
+          elif [[ "${{ env.STAGE }}" == "feature4" ]]; then
             cp .secrets.feature4.yml .secrets.yml
-          elif [[ "${{ env.BRANCH_NAME }}" == "feature5" ]]; then
+          elif [[ "${{ env.STAGE }}" == "feature5" ]]; then
             cp .secrets.feature5.yml .secrets.yml
-          elif [[ "${{ env.BRANCH_NAME }}" == "feature6" ]]; then
+          elif [[ "${{ env.STAGE }}" == "feature6" ]]; then
             cp .secrets.feature6.yml .secrets.yml
-          elif [[ "${{ env.BRANCH_NAME }}" == "feature7" ]]; then
+          elif [[ "${{ env.STAGE }}" == "feature7" ]]; then
             cp .secrets.feature7.yml .secrets.yml
           fi
-          
+
       - name: Sleep for part2 and part3
         if: matrix.serverless == 'part2' || matrix.serverless == 'part3'
         run: sleep 180
-        
-      - name: Serverless Deploy
+
+      - name: Deploy Part ${{ matrix.serverless }}
         run: |
-          echo "Starting AWS deployment..."
-          serverless deploy --stage ${{ env.BRANCH_NAME }} --verbose
+          echo "Starting deployment for ${{ matrix.serverless }} to stage ${{ env.STAGE }}"
+          serverless deploy --stage "${{ env.STAGE }}" --verbose
+
+      - name: Prune Old Versions
+        run: |
+          echo "Pruning old versions for ${{ matrix.serverless }}"
+          serverless prune -n 3 --stage "${{ env.STAGE }}"
