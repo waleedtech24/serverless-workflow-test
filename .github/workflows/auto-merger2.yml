@@ -1,103 +1,118 @@
-name: Auto Merge (Sequential wait)
+name: Auto Merge Branch2 - Sequential Extended
 
 on:
   push:
-    branches: [dev]
-
-permissions:
-  contents: write      # merge API
-  actions: write       # workflow_dispatch
-
-concurrency:
-  group: auto-merger
-  cancel-in-progress: false
+    branches:
+      - dev
 
 jobs:
-  merge_and_wait:
+  auto_back_merge_dev_f1:
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/dev'
     steps:
       - uses: actions/checkout@v4
-
-      - id: cfg
-        run: |
-          echo "branches=f1 f2 f3 f4 f5 f6 f7" >> $GITHUB_OUTPUT
-          echo "wf_file=.github/workflows/build-and-deploy.yml" >> $GITHUB_OUTPUT
-          echo "wf_name=Serverless Build and Deploy" >> $GITHUB_OUTPUT
-
-      - name: Merge & Wait (one-by-one)
-        uses: actions/github-script@v7
+      - name: Merge dev -> f1
+        continue-on-error: true
+        uses: devmasx/merge-branch@master
         with:
-          script: |
-            const owner = context.repo.owner;
-            const repo  = context.repo.repo;
-            const branches = `${{ steps.cfg.outputs.branches }}`.split(' ').filter(Boolean);
-            const WF_FILE = `${{ steps.cfg.outputs.wf_file }}`;
-            const WF_NAME = `${{ steps.cfg.outputs.wf_name }}`;
+          type: now
+          from_branch: dev
+          target_branch: f1
+          message: Merge dev into f1
+          github_token: ${{ secrets.GH_AUTO_MERGER }}
 
-            async function mergeDevInto(target) {
-              try {
-                const res = await github.request('POST /repos/{owner}/{repo}/merges', {
-                  owner, repo, base: target, head: 'dev',
-                  commit_message: `Auto-merge dev → ${target}`
-                });
-                core.info(`Merged dev → ${target} (status=${res.status})`);
-                return res.status; // 201=created, 204=up-to-date
-              } catch (e) {
-                if (e.status === 409) core.setFailed(`Merge conflict dev → ${target}`);
-                throw e;
-              }
-            }
+  auto_back_merge_dev_f2:
+    runs-on: ubuntu-latest
+    needs: auto_back_merge_dev_f1
+    if: github.ref == 'refs/heads/dev'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Merge dev -> f2
+        continue-on-error: true
+        uses: devmasx/merge-branch@master
+        with:
+          type: now
+          from_branch: dev
+          target_branch: f2
+          message: Merge dev into f2
+          github_token: ${{ secrets.GH_AUTO_MERGER }}
 
-            async function dispatch(branch) {
-              await github.rest.actions.createWorkflowDispatch({
-                owner, repo, workflow_id: WF_FILE, ref: branch
-              });
-              core.info(`[${branch}] Dispatched ${WF_NAME}`);
-            }
+  auto_back_merge_dev_f3:
+    runs-on: ubuntu-latest
+    needs: auto_back_merge_dev_f2
+    if: github.ref == 'refs/heads/dev'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Merge dev -> f3
+        continue-on-error: true
+        uses: devmasx/merge-branch@master
+        with:
+          type: now
+          from_branch: dev
+          target_branch: f3
+          message: Merge dev into f3
+          github_token: ${{ secrets.GH_AUTO_MERGER }}
 
-            async function latestRun(branch) {
-              const { data } = await github.rest.actions.listWorkflowRunsForRepo({
-                owner, repo, branch, per_page: 20
-              });
-              return (data.workflow_runs || []).find(r => r.name === WF_NAME);
-            }
+  auto_back_merge_dev_f4:
+    runs-on: ubuntu-latest
+    needs: auto_back_merge_dev_f3
+    if: github.ref == 'refs/heads/dev'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Merge dev -> f4
+        continue-on-error: true
+        uses: devmasx/merge-branch@master
+        with:
+          type: now
+          from_branch: dev
+          target_branch: f4
+          message: Merge dev into f4
+          github_token: ${{ secrets.GH_AUTO_MERGER }}
 
-            async function ensureRun(branch) {
-              // if no run appears, dispatch and re-check up to ~30s
-              let run = await latestRun(branch);
-              if (!run) await dispatch(branch);
-              const deadline = Date.now() + 30*1000;
-              while (!run && Date.now() < deadline) {
-                await new Promise(r => setTimeout(r, 5000));
-                run = await latestRun(branch);
-              }
-              if (!run) { core.setFailed(`[${branch}] No run started for ${WF_NAME}`); throw new Error('No run'); }
-            }
+  auto_back_merge_dev_f5:
+    runs-on: ubuntu-latest
+    needs: auto_back_merge_dev_f4
+    if: github.ref == 'refs/heads/dev'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Merge dev -> f5
+        continue-on-error: true
+        uses: devmasx/merge-branch@master
+        with:
+          type: now
+          from_branch: dev
+          target_branch: f5
+          message: Merge dev into f5
+          github_token: ${{ secrets.GH_AUTO_MERGER }}
 
-            async function waitSuccess(branch) {
-              const deadline = Date.now() + 90*60*1000; // 90 min
-              let lastId = 0;
-              while (Date.now() < deadline) {
-                const run = await latestRun(branch);
-                if (run && run.id !== lastId) {
-                  core.info(`[${branch}] Run #${run.id} status=${run.status} conclusion=${run.conclusion}`);
-                  lastId = run.id;
-                }
-                if (run && run.status === 'completed') {
-                  if (run.conclusion === 'success') return;
-                  core.setFailed(`[${branch}] Build failed (${run.conclusion})`);
-                  throw new Error('Build failed');
-                }
-                await new Promise(r => setTimeout(r, 15000));
-              }
-              core.setFailed(`[${branch}] Timeout waiting for ${WF_NAME}`);
-              throw new Error('Timeout');
-            }
+  auto_back_merge_dev_f6:
+    runs-on: ubuntu-latest
+    needs: auto_back_merge_dev_f5
+    if: github.ref == 'refs/heads/dev'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Merge dev -> f6
+        continue-on-error: true
+        uses: devmasx/merge-branch@master
+        with:
+          type: now
+          from_branch: dev
+          target_branch: f6
+          message: Merge dev into f6
+          github_token: ${{ secrets.GH_AUTO_MERGER }}
 
-            for (const br of branches) {
-              core.startGroup(`dev → ${br}`);
-              await mergeDevInto(br);   // 201/204 both fine
-              await ensureRun(br);      // push na aaye to dispatch karke run pakka
-              await waitSuccess(br);    // ✅ f1 complete → tabhi f2 …
-              core.endGroup();
-            }
+  auto_back_merge_dev_f7:
+    runs-on: ubuntu-latest
+    needs: auto_back_merge_dev_f6
+    if: github.ref == 'refs/heads/dev'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Merge dev -> f7
+        continue-on-error: true
+        uses: devmasx/merge-branch@master
+        with:
+          type: now
+          from_branch: dev
+          target_branch: f7
+          message: Merge dev into f7
+          github_token: ${{ secrets.GH_AUTO_MERGER }}
