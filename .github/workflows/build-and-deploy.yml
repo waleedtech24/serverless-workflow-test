@@ -1,4 +1,4 @@
-name: Serverless Build and Deploy - Extended
+name: Serverless Build and Deploy
 
 on:
   push:
