@@ -3,11 +3,6 @@ name: Serverless Build and Deploy
 on:
   push:
     branches: [f1, f2, f3, f4, f5, f6, f7, dev]
-  workflow_dispatch: {}
-
-concurrency:
-  group: sls-deploy-${{ github.repository }}
-  cancel-in-progress: false
 
 jobs:
   deploy:
@@ -55,7 +50,7 @@ jobs:
           fi
 
       - name: Show Stage
-        run: echo "Using stage - $STAGE"
+        run: echo "Using stage - ${{ env.STAGE }}"
 
       - name: Copy Serverless Config
         run: |
