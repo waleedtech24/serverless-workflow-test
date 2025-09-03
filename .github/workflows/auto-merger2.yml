@@ -1,9 +1,13 @@
-name: Auto Merge Branch2 - Sequential Extended
+name: Auto Merge Branch2 - Sequential
 
 on:
   push:
     branches:
       - dev
+
+concurrency:
+  group: merge-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   auto_back_merge_dev_f1:
